@@ -1,0 +1,198 @@
+FCRACKZIP(1)                                                      FCRACKZIP(1)
+
+
+
+NNAAMMEE
+       _f_c_r_a_c_k_z_i_p - a Free/Fast Zip Password Cracker
+
+SSYYNNOOPPSSIISS
+       ffccrraacckkzziipp  [-bDBchVvplum2] [--brute-force] [--dictionary] [--benchmark]
+       [--charset characterset]  [--help]  [--validate]  [--verbose]  [--init-
+       password  string/path] [--length min-max] [--use-unzip] [--method name]
+       [--modulo r/m] file...
+
+DDEESSCCRRIIPPTTIIOONN
+       _f_c_r_a_c_k_z_i_p searches each zipfile given for encrypted files and tries  to
+       guess the password. All files must be encrypted with the same password,
+       the more files you provide, the better.
+
+   OOPPTTIIOONNSS
+       --hh,, ----hheellpp
+              Prints the version number and (hopefully) some helpful insights.
+
+       --vv,, ----vveerrbboossee
+              Each -v makes the program more verbose.
+
+       --bb,, ----bbrruuttee--ffoorrccee
+              Select brute force mode. This tries all possible combinations of
+              the letters you specify.
+
+       --DD,, ----ddiiccttiioonnaarryy
+              Select dictionary mode. In this mode, fcrackzip will read  pass-
+              words  from a file, which must contain one password per line and
+              should be alphabetically sorted (e.g. using ssoorrtt((11))).
+
+       --cc,, ----cchhaarrsseett cchhaarraacctteerrsseett--ssppeecciiffiiccaattiioonn
+              Select the characters to use in brute-force  cracking.  Must  be
+              one of
+
+                a   include all lowercase characters [a-z]
+                A   include all uppercase characters [A-Z]
+                1   include the digits [0-9]
+                !   include [!:$%&/()=?{[]}+*~#]
+                :   the following characters upto the end of the spe-
+                    cification string are included in the character set.
+                    This way you can include any character except binary
+                    null (at least under unix).
+
+              For  example, a1:$% selects lowercase characters, digits and the
+              dollar and percent signs.
+
+       --pp,, ----iinniitt--ppaasssswwoorrdd ssttrriinngg
+              Set initial (starting) password  for  brute-force  searching  to
+              _s_t_r_i_n_g, or use the file with the name _s_t_r_i_n_g to supply passwords
+              for dictionary searching.
+
+       --ll,, ----lleennggtthh mmiinn[[--mmaaxx]]
+              Use an initial password of length min, and check  all  passwords
+              upto  passwords  of length max (including). You can omit the max
+              parameter.
+
+       --uu,, ----uussee--uunnzziipp
+              Try to decompress the first  file  by  calling  unzip  with  the
+              guessed password. This weeds out false positives when not enough
+              files have been given.
+
+       --mm,, ----mmeetthhoodd nnaammee
+              Use method number "name" instead of the default cracking method.
+              The  switch  ----hheellpp  will print a list of available methods. Use
+              ----bbeenncchhmmaarrkk to see  which  method  does  perform  best  on  your
+              machine. The nnaammee can also be the number of the method to use.
+
+       --22,, ----mmoodduulloo rr//mm
+              Calculate only r/m of the password. Not yet supported.
+
+       --BB,, ----bbeenncchhmmaarrkk
+              Make a small benchmark, the output is nearly meaningless.
+
+       --VV,, ----vvaalliiddaattee
+              Make some basic checks wether the cracker works.
+
+ZZIIPP PPAASSSSWWOORRDD BBAASSIICCSS
+       Have you ever mis-typed a password for unzip? Unzip reacted pretty fast
+       with ´incorrect password´, _w_i_t_h_o_u_t decrypting the whole file. While the
+       encryption algorithm used by zip is relatively secure, PK made cracking
+       easy by providing hooks for very fast  password-checking,  directly  in
+       the zip file. Understanding these is crucial to zip password cracking:
+
+       For each password that is tried, the first twelve bytes of the file are
+       decrypted. Depending on the version of zip used  to  encrypt  the  file
+       (more  on  that  later), the first ten or eleven bytes are random, fol-
+       lowed by one or two bytes whose values are stored elsewhere in the  zip
+       file,  i.e.  are  known  beforehand. If these last bytes don't have the
+       correct (known) value, the password is definitely wrong. If  the  bytes
+       are correct, the password _m_i_g_h_t be correct, but the only method to find
+       out is to unzip the file and compare the uncompressed length and crc´s.
+
+       Earlier  versions  of  pkzip (1.xx) (and, incidentally, many zip clones
+       for other operating systems!) stored two known bytes.  Thus  the  error
+       rate  was  roughly  1/2^16 = 0.01%. PKWARE ´improved´ (interesting what
+       industry calls improved) the security of their format by only including
+       one  byte, so the possibility of false passwords is now raised to 0.4%.
+       Unfortunately, there is no real way to distinguish one  byte  from  two
+       byte formats, so we have to be conservative.
+
+BBRRUUTTEE FFOORRCCEE MMOODDEE
+       By default, brute force starts at the given starting password, and suc-
+       cessively tries all combinations until they are exhausted, printing all
+       passwords that it detects, together with a rough correctness indicator.
+
+       The starting password given by the _-_p  switch  determines  the  length.
+       fcrackzip  will  not  currently  increase the password length automati-
+       cally, unless the _-_l switch is used.
+
+DDIICCTTIIOONNAARRYY MMOODDEE
+       This mode is similar to brute force mode,  but  instead  of  generating
+       passwords  using  a given set of characters and a length, the passwords
+       will be read from a file that you have to specify using the _-_p  switch.
+
+CCPP MMAASSKK
+       A  CP  mask  is  a  method to obscure images or parts of images using a
+       password.  These obscured images can be restored  even  when  saved  as
+       JPEG  files. In most of these files the password is actually hidden and
+       can be decoded easily (using one of the many available viewer and mask-
+       ing programs, e.g. xv). If you convert the image the password, however,
+       is lost. The ccppmmaasskk crack method  can  be  used  to  brute-force  these
+       images. Instead of a zip file you supply the obscured part (and nothing
+       else) of the image in the PPPPMM-Image Format (xxvv and  other  viewers  can
+       easily do this).
+
+       The  ccppmmaasskk  method  can  only cope with password composed of uppercase
+       letters, so be sure to supply the ----cchhaarrsseett  AA  or  equivalent  option,
+       together with a suitable initialization password.
+
+EEXXAAMMPPLLEESS
+       ffccrraacckkzziipp --cc aa --pp aaaaaaaaaaaa ssaammppllee..zziipp
+              checks  the  encrypted  files  in sample.zip for all lowercase 6
+              character passwords (aaaaaa ... abaaba ... ghfgrg ... zzzzzz).
+
+       ffccrraacckkzziipp ----mmeetthhoodd ccppmmaasskk ----cchhaarrsseett AA ----iinniitt AAAAAAAA tteesstt..ppppmm
+              checks the obscured image tteesstt..ppppmm for all four character  pass-
+              words.   -TP  ffccrraacckkzziipp --DD --pp ppaasssswwoorrddss..ttxxtt ssaammppllee..zziipp check for
+              every password listed in the file ppaasssswwoorrddss..ttxxtt.
+
+PPEERRFFOORRMMAANNCCEE
+       _f_z_c, which seems to be widely used as a fast password  cracker,  claims
+       to  make  204570  checks per second on my machine (measured under plain
+       dos w/o memory manager).
+
+       _f_c_r_a_c_k_z_i_p, being written in  C  and  not  in  assembler,  naturally  is
+       slower. Measured on a slightly loaded unix (same machine), it´s 12 per-
+       cent slower (the compiler used was _p_g_c_c, from  hhttttpp::////wwwwww..ggcccc..mmll..oorrgg//).
+
+       To remedy this a bit, I converted small parts of the encryption core to
+       x86 assembler (it will still compile on non x86 machines), and now it´s
+       about  4-12  percent  faster than _f_z_c (again, the _f_c_r_a_c_k_z_i_p performance
+       was measured under a multitasking os,  so  there  are  inevitably  some
+       meaurement  errors),  so there shouldn't be a tempting reason to switch
+       to other programs.
+
+       Further improvements are definitely possible: _f_z_c took 4 years  to  get
+       into  shape, while fcrackzip was hacked together in under 10 hours. And
+       not to forget you have the source, while  other  programs  (like  _f_z_c),
+       even  come  as  an _e_n_c_r_y_p_t_e_d _._e_x_e file (maybe because their programmers
+       are afraid of other people could having a look at their  lack  of  pro-
+       gramming skills?  nobody knows...)
+
+RRAATTIIOONNAALLEE
+       The  reason  I  wrote _f_c_r_a_c_k_z_i_p was NNOOTT to have the fastest zip cracker
+       available, but to provide a _p_o_r_t_a_b_l_e, _f_r_e_e (thus _e_x_t_e_n_s_i_b_l_e), but still
+       _f_a_s_t  zip  password  cracker.  I  was  really pissed of with that dumb,
+       nonextendable zipcrackers that were either slow, were too  limited,  or
+       wouldn't  run  in  the background (say, under unix). (And you can't run
+       them on your superfast 600Mhz Alpha).
+
+BBUUGGSS
+       No automatic unzip checking.
+
+       Stop/resume facility is missing.
+
+       Should be able to distinguish between files with 16  bit  stored  CRC´s
+       and 8 bit stored CRC´s.
+
+       The benchmark does not work on all systems.
+
+       It's still early alpha.
+
+       Method "cpmask" only accepts ppms.
+
+       Could be faster.
+
+AAUUTTHHOORR
+       _f_c_r_a_c_k_z_i_p   was  written  by  Marc  Lehmann  <pcg@goof.com>.  The  main
+       _f_c_r_a_c_k_z_i_p page is at hhttttpp::////wwwwww..ggooooff..ccoomm//ppccgg//mmaarrcc//ffccrraacckkzziipp..hhttmmll)
+
+
+
+
+                        Free/Fast Zip Password Cracker            FCRACKZIP(1)

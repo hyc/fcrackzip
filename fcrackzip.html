@@ -1,0 +1,275 @@
+<HTML><HEAD><TITLE>Manpage of FCRACKZIP</TITLE>
+</HEAD><BODY>
+<H1>FCRACKZIP</H1>
+Section: User Commands  (1)<BR>Updated: Free/Fast Zip Password Cracker<BR><A HREF="#index">Index</A>
+<HR>
+
+<A NAME="lbAB">&nbsp;</A>
+<H2>NAME</H2>
+
+<I>fcrackzip</I>
+
+- a Free/Fast Zip Password Cracker
+<A NAME="lbAC">&nbsp;</A>
+<H2>SYNOPSIS</H2>
+
+<B>fcrackzip</B>
+
+[-bDBchVvplum2] [--brute-force] [--dictionary] [--benchmark] [--charset characterset]
+[--help] [--validate] [--verbose] [--init-password string/path] [--length min-max]
+[--use-unzip] [--method name] [--modulo r/m] file...
+<A NAME="lbAD">&nbsp;</A>
+<H2>DESCRIPTION</H2>
+
+<I>fcrackzip</I>
+
+searches each zipfile given for encrypted files and tries to guess the
+password. All files must be encrypted with the same password, the more
+files you provide, the better.
+<A NAME="lbAE">&nbsp;</A>
+<H3>OPTIONS</H3>
+
+<DL COMPACT>
+<DT><B>-h, --help</B>
+
+<DD>
+Prints the version number and (hopefully) some helpful insights.
+<DT><B>-v, --verbose</B>
+
+<DD>
+Each -v makes the program more verbose.
+<DT><B>-b, --brute-force</B>
+
+<DD>
+Select brute force mode. This tries all possible combinations
+of the letters you specify.
+<DT><B>-D, --dictionary</B>
+
+<DD>
+Select dictionary mode. In this mode, fcrackzip will read passwords
+from a file, which must contain one password per line and should be
+alphabetically sorted (e.g. using <B>(1)</B>).
+<DT><B>-c, --charset characterset-specification</B>
+
+<DD>
+Select the characters to use in brute-force cracking. Must be one
+of
+<P>
+<PRE>
+  a   include all lowercase characters [a-z]
+  A   include all uppercase characters [A-Z]
+  1   include the digits [0-9]
+  !   include [!:$%&amp;/()=?{[]}+*~#]
+  :   the following characters upto the end of the spe-
+      cification string are included in the character set.
+      This way you can include any character except binary
+      null (at least under unix).
+</PRE>
+
+<P>
+For example, a1:$% selects lowercase characters, digits and the dollar and
+percent signs.
+<DT><B>-p, --init-password string</B>
+
+<DD>
+Set initial (starting) password for brute-force searching to <I>string</I>,
+or use the file with the name <I>string</I> to supply passwords for dictionary
+searching.
+<DT><B>-l, --length min[-max]</B>
+
+<DD>
+Use an initial password of length min, and check all passwords
+upto passwords of length max (including). You can omit the max
+parameter.
+<DT><B>-u, --use-unzip</B>
+
+<DD>
+Try to decompress the first file by calling unzip with the guessed
+password. This weeds out false positives when not enough files have
+been given.
+<DT><B>-m, --method name</B>
+
+<DD>
+Use method number &quot;name&quot; instead of the default cracking method. The
+switch <B>--help</B> will print a list of available methods. Use
+<B>--benchmark</B> to see which method does perform best on your
+machine. The <B>name</B> can also be the number of the method to use.
+<DT><B>-2, --modulo r/m</B>
+
+<DD>
+Calculate only r/m of the password. Not yet supported.
+<DT><B>-B, --benchmark</B>
+
+<DD>
+Make a small benchmark, the output is nearly meaningless.
+<DT><B>-V, --validate</B>
+
+<DD>
+Make some basic checks wether the cracker works.
+</DL>
+<A NAME="lbAF">&nbsp;</A>
+<H2>ZIP PASSWORD BASICS</H2>
+
+Have you ever mis-typed a password for unzip? Unzip reacted pretty fast with
+'incorrect password', <I>without</I> decrypting the whole file. While the
+encryption algorithm used by zip is relatively secure, PK made cracking easy
+by providing hooks for very fast password-checking, directly in the zip
+file. Understanding these is crucial to zip password cracking:
+<P>
+For each password that is tried, the first twelve bytes of the file are
+decrypted. Depending on the version of zip used to encrypt the file (more on
+that later), the first ten or eleven bytes are random, followed by one or
+two bytes whose values are stored elsewhere in the zip file, i.e. are known
+beforehand. If these last bytes don't have the correct (known) value, the
+password is definitely wrong. If the bytes are correct, the password
+<I>might</I> be correct, but the only method to find out is to unzip the file
+and compare the uncompressed length and crc's.
+<P>
+Earlier versions of pkzip (1.xx) (and, incidentally, many zip clones for
+other operating systems!) stored two known bytes. Thus the error rate was
+roughly 1/2^16 = 0.01%. PKWARE 'improved' (interesting what industry calls
+improved) the security of their format by only including one byte, so the
+possibility of false passwords is now raised to 0.4%. Unfortunately, there
+is no real way to distinguish one byte from two byte formats, so we have to
+be conservative.
+<A NAME="lbAG">&nbsp;</A>
+<H2>BRUTE FORCE MODE</H2>
+
+By default, brute force starts at the given starting password, and
+successively tries all combinations until they are exhausted, printing all
+passwords that it detects, together with a rough correctness indicator.
+<P>
+The starting password given by the <I>-p</I> switch determines the length.
+fcrackzip will not currently increase the password length automatically, unless
+the <I>-l</I> switch is used.
+<A NAME="lbAH">&nbsp;</A>
+<H2>DICTIONARY MODE</H2>
+
+This mode is similar to brute force mode, but instead of generating passwords
+using a given set of characters and a length, the passwords will be read from
+a file that you have to specify using the <I>-p</I> switch.
+<A NAME="lbAI">&nbsp;</A>
+<H2>CP MASK</H2>
+
+A CP mask is a method to obscure images or parts of images using a
+password.  These obscured images can be restored even when saved as JPEG
+files. In most of these files the password is actually hidden and can
+be decoded easily (using one of the many available viewer and masking
+programs, e.g. xv). If you convert the image the password, however, is
+lost. The <B>cpmask</B> crack method can be used to brute-force these
+images. Instead of a zip file you supply the obscured part (and nothing
+else) of the image in the <B>PPM</B>-Image Format (<B>xv</B> and other
+viewers can easily do this).
+<P>
+The <B>cpmask</B> method can only cope with password composed of uppercase
+letters, so be sure to supply the <B>--charset A</B> or equivalent option,
+together with a suitable initialization password.
+<A NAME="lbAJ">&nbsp;</A>
+<H2>EXAMPLES</H2>
+
+<DL COMPACT>
+<DT><B>fcrackzip -c a -p aaaaaa sample.zip</B>
+
+<DD>
+checks the encrypted files in sample.zip for all lowercase 6 character
+passwords (aaaaaa ... abaaba ... ghfgrg ... zzzzzz).
+<DT><B>fcrackzip --method cpmask --charset A --init AAAA test.ppm</B>
+
+<DD>
+checks the obscured image <B>test.ppm</B> for all four character passwords.
+-TP
+<B>fcrackzip -D -p passwords.txt sample.zip</B>
+
+check for every password listed in the file <B>passwords.txt</B>.
+</DL>
+<A NAME="lbAK">&nbsp;</A>
+<H2>PERFORMANCE</H2>
+
+<I>fzc</I>, which seems to be widely used as a fast password cracker,
+claims to make 204570 checks per second on my machine (measured under plain
+dos w/o memory manager).
+<P>
+<I>fcrackzip</I>, being written in C and not in assembler, naturally
+is slower. Measured on a slightly loaded unix (same machine), it's 12
+percent slower (the compiler used was <I>pgcc</I>, from
+<B><A HREF="http://www.gcc.ml.org/">http://www.gcc.ml.org/</A></B>).
+<P>
+To remedy this a bit, I converted small parts of the encryption core to x86
+assembler (it will still compile on non x86 machines), and now it's about
+4-12 percent faster than <I>fzc</I> (again, the <I>fcrackzip</I> performance
+was measured under a multitasking os, so there are inevitably some
+meaurement errors), so there shouldn't be a tempting reason to switch to
+other programs.
+<P>
+Further improvements are definitely possible: <I>fzc</I> took 4 years to get
+into shape, while fcrackzip was hacked together in under 10 hours. And not to
+forget you have the source, while other programs (like <I>fzc</I>), even come
+as an <I>encrypted .exe</I> file (maybe because their programmers are afraid
+of other people could having a look at their lack of programming skills?
+nobody knows...)
+<A NAME="lbAL">&nbsp;</A>
+<H2>RATIONALE</H2>
+
+The reason I wrote <I>fcrackzip</I> was <B>NOT</B> to have the fastest zip
+cracker available, but to provide a <I>portable</I>, <I>free</I> (thus
+<I>extensible</I>), but still <I>fast</I> zip password cracker. I was really
+pissed of with that dumb, nonextendable zipcrackers that were either slow,
+were too limited, or wouldn't run in the background (say, under unix). (And
+you can't run them on your superfast 600Mhz Alpha).
+<A NAME="lbAM">&nbsp;</A>
+<H2>BUGS</H2>
+
+No automatic unzip checking.
+<P>
+
+Stop/resume facility is missing.
+<P>
+
+Should be able to distinguish between files with 16 bit stored CRC's and 8
+bit stored CRC's.
+<P>
+
+The benchmark does not work on all systems.
+<P>
+
+It's still early alpha.
+<P>
+
+Method &quot;cpmask&quot; only accepts ppms.
+<P>
+
+Could be faster.
+<A NAME="lbAN">&nbsp;</A>
+<H2>AUTHOR</H2>
+
+<I>fcrackzip</I> was written by Marc Lehmann &lt;<A HREF="mailto:pcg@goof.com">pcg@goof.com</A>&gt;. The main
+<I>fcrackzip</I> page is at <B><A HREF="http://www.goof.com/pcg/marc/fcrackzip.html">http://www.goof.com/pcg/marc/fcrackzip.html</A></B>)
+<P>
+<P>
+
+<HR>
+<A NAME="index">&nbsp;</A><H2>Index</H2>
+<DL>
+<DT><A HREF="#lbAB">NAME</A><DD>
+<DT><A HREF="#lbAC">SYNOPSIS</A><DD>
+<DT><A HREF="#lbAD">DESCRIPTION</A><DD>
+<DL>
+<DT><A HREF="#lbAE">OPTIONS</A><DD>
+</DL>
+<DT><A HREF="#lbAF">ZIP PASSWORD BASICS</A><DD>
+<DT><A HREF="#lbAG">BRUTE FORCE MODE</A><DD>
+<DT><A HREF="#lbAH">DICTIONARY MODE</A><DD>
+<DT><A HREF="#lbAI">CP MASK</A><DD>
+<DT><A HREF="#lbAJ">EXAMPLES</A><DD>
+<DT><A HREF="#lbAK">PERFORMANCE</A><DD>
+<DT><A HREF="#lbAL">RATIONALE</A><DD>
+<DT><A HREF="#lbAM">BUGS</A><DD>
+<DT><A HREF="#lbAN">AUTHOR</A><DD>
+</DL>
+<HR>
+This document was created by
+,
+using the manual pages.<BR>
+Time: 09:44:43 GMT, February 09, 2003
+</BODY>
+</HTML>

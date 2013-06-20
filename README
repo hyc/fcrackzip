@@ -1,0 +1,20 @@
+
+See fcrackzip.txt (which is derived from the manpage), or fcrackzip.html
+
+There is a web page with more information at
+http://lehmann.home.ml.org/fcrackzip.html or
+http://www.goof.com/pcg/marc/fcrackzip.html
+
+A sample password-protected .zip file is included as "noradi.zip". It's
+password has 6 lower case characters, and fcrackzip will find it (and a
+number of false positives) with
+
+fcrackzip -b -c a -p aaaaaa ./noradi.zip
+
+which will take between one and thirty minutes on typical machines.
+
+To find out which of these passwords is the right one either try them out
+or use the --use-unzip option.
+
+Marc
+
