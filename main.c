@@ -3,6 +3,7 @@
 #endif
 
 #include <stdio.h>
+#include <stddef.h>
 #include <stdlib.h>
 #ifdef HAVE_STDBOOL_H
 #include <stdbool.h>
@@ -25,11 +26,7 @@ typedef enum { FALSE = 0, TRUE = 1 } bool;
 
 #include <string.h>
 
-#ifdef USE_UNIX_REDIRECTION
-#define DEVNULL ">/dev/null 2>&1"
-#else
-#define DEVNULL ">NUL 2>&1"
-#endif
+#include <unzip.h>
 
 #include "crack.h"
 
@@ -47,13 +44,22 @@ static FILE *dict_file;
 int REGPARAM
 check_unzip (const char *pw)
 {
-  char buff[1024];
+  char *argv[5];
+  char pwbuf[512];
   int status;
+  UzpInit uzpi;
 
-  sprintf (buff, "unzip -qqtP \"%s\" %s " DEVNULL, pw, file_path[0]);
-  status = system (buff);
-
-#undef REDIR
+  argv[0] = "unzip";
+  argv[1] = "-t";
+  pwbuf[0] = '-';
+  pwbuf[1] = 'P';
+  strcpy(pwbuf+2, pw);
+  argv[2] = pwbuf;
+  argv[3] = file_path[0];
+  argv[4] = NULL;
+  uzpi.msgfn = UzpMessageNull;
+  uzpi.structlen = offsetof(UzpInit,inputfn);
+  status = UzpAltMain(4, argv, &uzpi);
 
   if (status == EXIT_SUCCESS)
     {
