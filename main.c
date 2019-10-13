@@ -26,7 +26,7 @@ typedef enum { FALSE = 0, TRUE = 1 } bool;
 
 #include <string.h>
 
-#include <unzip.h>
+#include <zip.h>
 
 #include "crack.h"
 
@@ -41,25 +41,51 @@ static int modul = 1;
 
 static FILE *dict_file;
 
+static zip_t *zipfile;
+
 int REGPARAM
 check_unzip (const char *pw)
 {
   char *argv[5];
   char pwbuf[512];
-  int status;
-  UzpInit uzpi;
+  int status = 1;
 
-  argv[0] = "unzip";
-  argv[1] = "-t";
-  pwbuf[0] = '-';
-  pwbuf[1] = 'P';
-  strcpy(pwbuf+2, pw);
-  argv[2] = pwbuf;
-  argv[3] = file_path[0];
-  argv[4] = NULL;
-  uzpi.msgfn = UzpMessageNull;
-  uzpi.structlen = offsetof(UzpInit,inputfn);
-  status = UzpAltMain(4, argv, &uzpi);
+  if (!zipfile) {
+    zipfile = zip_open(file_path[0], ZIP_RDONLY, &status);
+	if (!zipfile) {
+	  zip_error_t ze;
+	  zip_error_init_with_code(&ze, status);
+	  printf("%s", zip_error_strerror(&ze));
+	  zip_error_fini(&ze);
+	}
+  }
+
+  zip_file_t *zf = zip_fopen_index_encrypted(zipfile, 0, 0, pw);
+  if (!zf) {
+    status = zip_error_code_zip(zip_get_error(zipfile));
+	if (status && status != ZIP_ER_WRONGPASSWD) {
+	  fprintf(stderr, "%s\n", zip_strerror(zipfile));
+	  exit(-1);
+	}
+  } else {
+    zip_int64_t len;
+	char buf[4096];
+	do {
+	  len = zip_fread(zf, buf, sizeof(buf));
+	} while (len > 0);
+	if (len == 0) {
+      status = EXIT_SUCCESS;
+	} else {
+      status = zip_error_code_zip(zip_file_get_error(zf));
+#if 0
+	  if (status && status != ZIP_ER_WRONGPASSWD) {
+	    fprintf(stderr, "%s\n", zip_file_strerror(zf));
+	    exit(-1);
+	  }
+#endif
+	}
+	zip_fclose(zf);
+  }
 
   if (status == EXIT_SUCCESS)
     {

@@ -3,10 +3,10 @@ from http://oldhome.schmorp.de/marc/fcrackzip.html
 
 The original program spawns an external unzip binary when checking
 password guesses (with the -u option). This is extremely slow, so I've
-modified the code to use libunzip instead. This speeds up guessing by
+modified the code to use libzip instead. This speeds up guessing by
 over a factor of 1000 on my laptop, even with SSD.
 
-I built libunzip from the unzip-6.0 source. I believe this program is
+libzip is available on mst Linux distros. I believe this program is
 largely obsoleted now if you have John the Ripper with the Jumbo patch.
 In john-1.7.9-jumbo-7 you can just use zip2john and then run john.
 
