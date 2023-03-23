@@ -232,7 +232,7 @@ parse_charset (char *cs)
 
       case '!':
         strcpy ((char *) p, "!:$%&/()=?{[]}+-*~#");
-        p += 18;
+        p += 19;
         break;
 
       case ':':
